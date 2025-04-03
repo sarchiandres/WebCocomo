@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora COCOMO 81 Intermedio</title>
+  <link rel="stylesheet" href="/src/styles/style.css">
+</head>
+<body>
+  <div class="app-container">
+    <header>
+      <h1>Calculadora COCOMO 81 Intermedio</h1>
+      <p>Estimación de esfuerzo en proyectos de software</p>
+    </header>
+    
+    <main id="main-content">
+      <!-- El contenido del formulario o resultados se cargará aquí dinámicamente -->
+    </main>
+    
+    <footer>
+      <p>Proyecto COCOMO 81 Intermedio - <span id="current-year"></span></p>
+    </footer>
+  </div>
+
+  <!-- Plantilla para el formulario -->
+  <template id="form-template">
+    <div class="form-container">
+      <form id="cocomo-form">
+        <div class="form-section">
+          <h2>Datos del Proyecto</h2>
+          
+          <div class="form-group">
+            <label for="projectType">Tipo de Proyecto:</label>
+            <select id="projectType" name="projectType" required>
+              <option value="organic">Orgánico</option>
+              <option value="semi">Semi-acoplado</option>
+              <option value="embedded">Empotrado</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="kloc">Tamaño del Proyecto (KLOC):</label>
+            <input type="number" id="kloc" name="kloc" min="0.1" step="0.1" required>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2>Factores de Ajuste</h2>
+          
+          <!-- RELY - Fiabilidad requerida -->
+          <div class="form-group">
+            <label for="rely">Fiabilidad requerida del software:</label>
+            <select id="rely" name="rely" required>
+              <option value="0.75">Muy bajo (0.75)</option>
+              <option value="0.88">Bajo (0.88)</option>
+              <option value="1.00" selected>Nominal (1.00)</option>
+              <option value="1.15">Alto (1.15)</option>
+              <option value="1.40">Muy alto (1.40)</option>
+            </select>
+            <small>Mide las consecuencias de los errores del software</small>
+          </div>
+          
+          <!-- AEXP - Experiencia en la aplicación -->
+          <div class="form-group">
+            <label for="aexp">Experiencia en la aplicación:</label>
+            <select id="aexp" name="aexp" required>
+              <option value="1.29">Muy bajo (1.29)</option>
+              <option value="1.13">Bajo (1.13)</option>
+              <option value="1.00" selected>Nominal (1.00)</option>
+              <option value="0.91">Alto (0.91)</option>
+              <option value="0.82">Muy alto (0.82)</option>
+            </select>
+            <small>Nivel de experiencia del equipo en el tipo de aplicación</small>
+          </div>
+          
+          <!-- TOOL - Uso de herramientas -->
+          <div class="form-group">
+            <label for="tool">Uso de herramientas de software:</label>
+            <select id="tool" name="tool" required>
+              <option value="1.24">Muy bajo (1.24)</option>
+              <option value="1.10">Bajo (1.10)</option>
+              <option value="1.00" selected>Nominal (1.00)</option>
+              <option value="0.91">Alto (0.91)</option>
+              <option value="0.83">Muy alto (0.83)</option>
+            </select>
+            <small>Grado de utilización de herramientas de desarrollo</small>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h2>Cálculo Específico</h2>
+          
+          <div class="form-group">
+            <label>Tipo de Cálculo:</label>
+            <div class="radio-group">
+              <label>
+                <input type="radio" name="calculationType" value="team" checked> 
+                Calcular duración (meses) dado el equipo
+              </label>
+              <label>
+                <input type="radio" name="calculationType" value="duration"> 
+                Calcular equipo dado la duración
+              </label>
+            </div>
+          </div>
+          
+          <div id="teamSizeContainer" class="form-group">
+            <label for="teamSize">Tamaño del Equipo (personas):</label>
+            <input type="number" id="teamSize" name="teamSize" min="1" step="1" required>
+          </div>
+          
+          <div id="durationContainer" class="form-group" style="display: none;">
+            <label for="duration">Duración Deseada (meses):</label>
+            <input type="number" id="duration" name="duration" min="1" step="0.1">
+          </div>
+          
+          <div class="form-group">
+            <label for="monthlySalary">Sueldo Mensual (promedio en $):</label>
+            <input type="number" id="monthlySalary" name="monthlySalary" min="0" step="100" required>
+          </div>
+        </div>
+        
+        <div class="form-buttons">
+          <button type="submit" class="calculate-button">Calcular</button>
+        </div>
+      </form>
+    </div>
+  </template>
+
+  <!-- Plantilla para los resultados -->
+  <template id="results-template">
+    <div class="results-container">
+      <h2>Resultados de la Estimación COCOMO</h2>
+      
+      <div class="results-section">
+        <h3>Parámetros del Proyecto</h3>
+        <table class="params-table">
+          <tbody>
+            <tr>
+              <td>Tipo de proyecto:</td>
+              <td id="result-project-type"></td>
+            </tr>
+            <tr>
+              <td>Tamaño del proyecto:</td>
+              <td id="result-kloc"></td>
+            </tr>
+            <tr>
+              <td>Factores de ajuste:</td>
+              <td id="result-factors"></td>
+            </tr>
+            <tr>
+              <td>EAF (Factor de ajuste total):</td>
+              <td id="result-eaf"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="results-section">
+        <h3>Estimaciones de Esfuerzo y Tiempo</h3>
+        <table class="results-table">
+          <tbody>
+            <tr>
+              <td>Esfuerzo nominal:</td>
+              <td id="result-nominal-effort"></td>
+            </tr>
+            <tr>
+              <td>Esfuerzo ajustado:</td>
+              <td id="result-effort"></td>
+            </tr>
+            <tr>
+              <td>Tiempo de desarrollo:</td>
+              <td id="result-duration"></td>
+            </tr>
+            <tr>
+              <td>Personas requeridas (promedio):</td>
+              <td id="result-team-size"></td>
+            </tr>
+            <tr id="result-productivity-row">
+              <td>Productividad por persona:</td>
+              <td id="result-productivity"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="results-section" id="cost-section">
+        <h3>Estimación de Costos</h3>
+        <table class="costs-table">
+          <tbody>
+            <tr>
+              <td>Sueldo mensual promedio:</td>
+              <td id="result-salary"></td>
+            </tr>
+            <tr>
+              <td>Costo total sin ajuste anual:</td>
+              <td id="result-base-cost"></td>
+            </tr>
+            <tr>
+              <td>Costo total con ajuste anual (5%):</td>
+              <td id="result-total-cost"></td>
+            </tr>
+            <tr id="result-years-row">
+              <td>Duración en años:</td>
+              <td id="result-years"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="results-section">
+        <h3>Interpretación</h3>
+        <div class="interpretation">
+          <p id="result-interpretation-main"></p>
+          <p id="result-interpretation-duration" style="display: none;"></p>
+          <p id="result-interpretation-factors"></p>
+          <p id="result-interpretation-cost"></p>
+        </div>
+      </div>
+      
+      <div class="form-buttons">
+        <button id="back-button" class="back-button">Volver al Formulario</button>
+      </div>
+    </div>
+  </template>
+
+  <script src="/src/scripts/index.js"></script>
+</body>
+</html>
